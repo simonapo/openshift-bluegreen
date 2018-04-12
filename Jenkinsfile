@@ -6,7 +6,7 @@ node {
   // Blue/Green Deployment into Production
   // -------------------------------------
   def project  = ""
-  def dest     = "example-green"
+  def dest     = "green"
   def active   = ""
   def newcolor = ""
 
@@ -47,12 +47,12 @@ node {
     // Determine current project
     sh "oc get project|grep -v NAME|awk '{print \$1}' >project.txt"
     project = readFile('project.txt').trim()
-    sh "oc get route example -n ${project} -o jsonpath='{ .spec.to.name }' > activesvc.txt"
+    sh "oc get route bluegreen -n ${project} -o jsonpath='{ .spec.to.name }' > activesvc.txt"
 
     // Determine currently active Service
     active = readFile('activesvc.txt').trim()
-    if (active == "example-green") {
-      dest = "example-blue"
+    if (active == "green") {
+      dest = "blue"
     }
     echo "Active svc: " + active
     echo "Dest svc:   " + dest
@@ -77,8 +77,8 @@ node {
   }
   stage('Switch over to new Version') {
     input "Switch Production?"
-    sh 'oc patch route example -p \'{"spec":{"to":{"name":"' + dest + '"}}}\''
-    sh 'oc get route example > oc_out.txt'
+    sh 'oc patch route bluegreen -p \'{"spec":{"to":{"name":"' + dest + '"}}}\''
+    sh 'oc get route bluegreen > oc_out.txt'
     oc_out = readFile('oc_out.txt')
     echo "Current route configuration: " + oc_out
   }
